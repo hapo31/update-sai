@@ -224,8 +224,6 @@ if __name__ == "__main__":
     import os
     import sys
 
-    os.chdir(os.path.dirname(__file__))
-
     print("Start Update_sai...")
     while True:
         auth, stream, streamClass = init()
