@@ -1,0 +1,7 @@
+*.db
+*.sqlite3
+*.log
+*.service
+__pycache__
+.vscode
+config.py

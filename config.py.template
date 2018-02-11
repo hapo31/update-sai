@@ -1,0 +1,28 @@
+# -*- coding: utf-8 -*-
+
+consumer_key = "###"
+consumer_secret = "###"
+access_token = '###'
+access_secret = '###'
+
+# ここから下は全部DB初期化時にしか使われないので注意
+
+updatename_regex = r"$^"
+
+ng_users = []
+
+ng_words = []
+
+sabotage_words = []
+
+
+log_db_name = "aaa.sqlite3"
+error_db_name = "bbb.sqlite3"
+setting_db_name = "ccc.sqlite3"
+
+log_table = "aaa"
+error_table = "bbb"
+reaction_table = "ccc"
+ng_users_table = "ddd"
+ng_words_table = "eee"
+sabotage_words_table = "fff"
