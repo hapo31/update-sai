@@ -72,7 +72,7 @@ class MyStreamListener(tweepy.StreamListener):
 
             # ツイート本文
             tweetstr = ""
-            print(len(status.entities["hashtags"]))
+            len(status.entities["hashtags"])
             # 長すぎ
             if len(newname) > 20:
                 newname = ""
