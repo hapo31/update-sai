@@ -4,15 +4,17 @@
 import re
 import datetime
 import random
-import tweepy
 import traceback
+import tweepy
 
 import db_service
+
 
 class MyStreamListener(tweepy.StreamListener):
     """
     tweepyのStreamListenerを実装するクラス
     """
+
     def __init__(self, auth, config):
         super(MyStreamListener, self).__init__(api=tweepy.API(auth))
         self._repatter = re.compile(config["updatename_regex"])
@@ -41,10 +43,10 @@ class MyStreamListener(tweepy.StreamListener):
         # targetが自分なら常にTrue
         if(source == target_screen_name):
             return True
-        result = self.api.show_friendship(source_screen_name=source, target_screen_name = target_screen_name)
+        result = self.api.show_friendship(
+            source_screen_name=source, target_screen_name=target_screen_name)
         # resultは[0]に自分→相手のフォロー情報、[1]にその逆が入っている
         return result[1].following
-
 
     def on_status(self, status):
         allusers = "#allusers"
@@ -77,17 +79,18 @@ class MyStreamListener(tweepy.StreamListener):
                 tweetstr = ""
             # ハッシュタグがある場合は反応しない
             elif len(status.entities["hashtags"]) > 0:
-                newname =  ""
+                newname = ""
                 tweetstr = ""
             # ユーザー全体の使用履歴の確認
             elif allusers in self._user_history and not self._user_history[allusers].Use(10):
-                #過去20分で10回以上使われていたらランダムにつぶやいてupdate nameしない
+                # 過去20分で10回以上使われていたらランダムにつぶやいてupdate nameしない
                 i = random.randrange(len(self._config["sabotage_words"]))
-                tweetstr = "@%s %s" % (tweetuser_screenname, self._config["sabotage_words"][i])
+                tweetstr = "@%s %s" % (
+                    tweetuser_screenname, self._config["sabotage_words"][i])
                 newname = ""
             # 個人の使用履歴の確認
             elif tweetuser_screenname in self._user_history and not self._user_history[tweetuser_screenname].Use():
-                #使いすぎマンにはおしおき
+                # 使いすぎマンにはおしおき
                 tweetstr = "@%s 使いすぎじゃボケ" % (tweetuser_screenname)
                 newname = ""
                 # write_log("@%s use count:%d" % (tweetuser_screenname, self._user_history[tweetuser_screenname].use_count))
@@ -99,14 +102,16 @@ class MyStreamListener(tweepy.StreamListener):
                 # write_log("@%s use count:%d" % (tweetuser_screenname, self._user_history[tweetuser_screenname].use_count))
                 # 成功時のツイート本文
 
-                tweetstr = "@%s %s" % (tweetuser_screenname, self._config["success_tweet"] % newname)
+                tweetstr = "@%s %s" % (
+                    tweetuser_screenname, self._config["success_tweet"] % newname)
                 if allusers not in self._user_history:
                     self._user_history[allusers] = UsesCount()
                 # write_log("all user use count: %d" % self._user_history[allusers].use_count)
             # NGワードチェック
             for v in self._config["ng_words"]:
                 if re.match(v, newname):
-                    tweetstr = "@%s %s" % (tweetuser_screenname, self._config["failure_tweet"] % newname)
+                    tweetstr = "@%s %s" % (
+                        tweetuser_screenname, self._config["failure_tweet"] % newname)
                     newname = ""
                     break
             for u in self._config["ng_users"]:
@@ -120,20 +125,25 @@ class MyStreamListener(tweepy.StreamListener):
                     # 動作時刻と変更前、後、変更したユーザー名を出力
                     last = self._user_history[tweetuser_screenname].last_time
                     tstr = last.strftime("%y/%m/%d %H:%M:%S")
-                    print("@%s: %s => %s (%s)" % (tweetuser_screenname, self.api.me().name, newname, tstr))
-                    db_service.insertUpdatelog(status.author.screen_name, self.api.me().name, newname, tweetid)
+                    print("@%s: %s => %s (%s)" % (tweetuser_screenname,
+                                                  self.api.me().name, newname, tstr))
+                    db_service.insertUpdatelog(
+                        status.author.screen_name, self.api.me().name, newname, tweetid)
                     self.api.update_profile(name=newname)
             except tweepy.error.TweepError as e:
                 print(e.reason)
                 # write_log("Exception raised:%s " % e.reason)
-                tweetstr = "@%s 予期せぬエラーが発生したのでそういうのマジで勘弁して下さい @%s " % (tweetuser_screenname, self.api.me().screen_name)
+                tweetstr = "@%s 予期せぬエラーが発生したのでそういうのマジで勘弁して下さい @%s " % (
+                    tweetuser_screenname, self.api.me().screen_name)
                 # DM送っとく
-                self.send_DM_to_self(self.create_error_message(status, traceback.format_exc()))
+                self.send_DM_to_self(self.create_error_message(
+                    status, traceback.format_exc()))
                 return True
             finally:
                 #　その人と相互フォローであれば投稿する
                 if(self.check_friendship(status.author.screen_name) and tweetstr):
-                    self._rec_tweet = self.api.update_status(status=tweetstr, in_reply_to_status_id=tweetid)
+                    self._rec_tweet = self.api.update_status(
+                        status=tweetstr, in_reply_to_status_id=tweetid)
                     # write_log("Tweeted:%s" % tweetstr)
 
         return True
@@ -153,13 +163,16 @@ stack_trace:
 ==== end error report ====
         """ % (
             str(datetime.datetime.now(tz=JST())),
-            "https://twitter.com/%s/status/%s" % (status.author.screen_name, status.id) if status else "<runtime error>",
+            "https://twitter.com/%s/status/%s" % (
+                status.author.screen_name, status.id) if status else "<runtime error>",
             status.text if status else "<runtime error>",
             stacktrace_text
         )
 
     def send_DM_to_self(self, text):
-         self.api.send_direct_message(screen_name=self.api.me().screen_name, text=text)
+        self.api.send_direct_message(
+            screen_name=self.api.me().screen_name, text=text)
+
 
 class UsesCount(object):
 
@@ -172,7 +185,7 @@ class UsesCount(object):
         self._use_count = 1
 
     def Use(self, count=0):
-        #countが指定されていない場合はdefault_max_use_count回
+        # countが指定されていない場合はdefault_max_use_count回
         count = UsesCount.default_max_use_count if count == 0 else count
         self._use_count += 1
         self._last_time = datetime.datetime.now(tz=JST())
@@ -190,22 +203,26 @@ class UsesCount(object):
     @property
     def first_time(self):
         return self._first_time
+
     @property
     def last_time(self):
         return self._last_time
+
     @property
     def use_count(self):
         return self._use_count
 
-
     def Reset(self):
         self.__init__()
+
 
 class JST(datetime.tzinfo):
     def utcoffset(self, dt):
         return datetime.timedelta(hours=9)
+
     def dst(self, dt):
         return datetime.timedelta(0)
+
     def tzname(self, dt):
         return "JST"
 
@@ -213,12 +230,13 @@ class JST(datetime.tzinfo):
 def init():
     import config
     auth = tweepy.OAuthHandler(
-        consumer_key = config.consumer_key,
-        consumer_secret = config.consumer_secret)
+        consumer_key=config.consumer_key,
+        consumer_secret=config.consumer_secret)
     auth.set_access_token(config.access_token, config.access_secret)
 
     mystream = MyStreamListener(auth=auth, config=db_service.loadSettings())
     return auth, tweepy.Stream(auth=auth, listener=mystream), mystream
+
 
 if __name__ == "__main__":
     import os
@@ -236,5 +254,6 @@ if __name__ == "__main__":
         except Exception as e:
             err = traceback.format_exc()
             db_service.insertErrorLog(err)
-            streamClass.send_DM_to_self(streamClass.create_error_message(None, err))
+            streamClass.send_DM_to_self(
+                streamClass.create_error_message(None, err))
             print(err)
