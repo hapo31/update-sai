@@ -122,6 +122,9 @@ class MyStreamListener(tweepy.StreamListener):
             try:
                 # 名前が入っていれば名前変更の処理をする
                 if newname:
+                    # エイプリルフール 2018/04/01
+                    newname = newname[::-1]
+
                     # 動作時刻と変更前、後、変更したユーザー名を出力
                     last = self._user_history[tweetuser_screenname].last_time
                     tstr = last.strftime("%y/%m/%d %H:%M:%S")
