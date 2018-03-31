@@ -100,8 +100,10 @@ class MyStreamListener(tweepy.StreamListener):
                 if tweetuser_screenname not in self._user_history:
                     self._user_history[tweetuser_screenname] = UsesCount()
                 # write_log("@%s use count:%d" % (tweetuser_screenname, self._user_history[tweetuser_screenname].use_count))
-                # 成功時のツイート本文
 
+                # エイプリルフール 2018/04/01
+                newname = newname[::-1]
+                # 成功時のツイート本文
                 tweetstr = "@%s %s" % (
                     tweetuser_screenname, self._config["success_tweet"] % newname)
                 if allusers not in self._user_history:
@@ -122,8 +124,6 @@ class MyStreamListener(tweepy.StreamListener):
             try:
                 # 名前が入っていれば名前変更の処理をする
                 if newname:
-                    # エイプリルフール 2018/04/01
-                    newname = newname[::-1]
 
                     # 動作時刻と変更前、後、変更したユーザー名を出力
                     last = self._user_history[tweetuser_screenname].last_time
