@@ -101,8 +101,7 @@ class MyStreamListener(tweepy.StreamListener):
                     self._user_history[tweetuser_screenname] = UsesCount()
                 # write_log("@%s use count:%d" % (tweetuser_screenname, self._user_history[tweetuser_screenname].use_count))
 
-                # エイプリルフール 2018/04/01
-                newname = newname[::-1]
+                # newname = newname[::-1]
                 # 成功時のツイート本文
                 tweetstr = "@%s %s" % (
                     tweetuser_screenname, self._config["success_tweet"] % newname)
