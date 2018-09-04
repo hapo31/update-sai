@@ -5,8 +5,11 @@ import sqlite3
 
 import config
 
-# NGワードを取得する
+
 def getNGWords():
+    """
+    NGワードを取得する
+    """
     conn = sqlite3.connect(config.setting_db_name)
     sql = '''
 select * from %s
@@ -18,8 +21,11 @@ select * from %s
             result.append(row[0])
     return result
 
-# NGユーザーを取得する
+
 def getNGUsers():
+    """
+    NGユーザーを取得する
+    """
     conn = sqlite3.connect(config.setting_db_name)
     sql = '''
 select * from %s
@@ -31,8 +37,11 @@ select * from %s
             result.append(row[0])
     return result
 
-# サボり時反応ワードを取得する
+
 def getSabotageWords():
+    """
+    サボり時反応ワードを取得する
+    """
     conn = sqlite3.connect(config.setting_db_name)
     sql = '''
 select * from %s
@@ -44,8 +53,11 @@ select * from %s
             result.append(row[0])
     return result
 
-# 基本設定を取得する
+
 def getGeneralConfigs():
+    """
+    基本設定を取得する
+    """
     conn = sqlite3.connect(config.setting_db_name)
     sql = "select * from %s limit 1" % config.reaction_table
     res_c = conn.execute(sql)
@@ -57,7 +69,23 @@ def getGeneralConfigs():
 
     return res
 
+
+def getLastUpdateTweetId():
+    """
+    最後に反応したツイートのIDを取得する
+    """
+    conn = conn = sqlite3.connect(config.log_db_name)
+    sql = "select url from %s order by date desc limit 1" % (config.log_table)
+
+    res_cursor = conn.execute(sql)
+    for row in res_cursor:
+        return int(row[0])
+
+
 def insertUpdatelog(author, fromName, newName, tweetId):
+    """
+    update時のログを挿入する
+    """
     conn = sqlite3.connect(config.log_db_name)
     sql = '''
 insert into %s (date, author, from_name, new_name, url)
@@ -68,7 +96,11 @@ values(
     conn.execute(sql, (author, fromName, newName, tweetId))
     conn.commit()
 
+
 def insertErrorLog(message):
+    """
+    エラーログを挿入する
+    """
     conn = sqlite3.connect(config.error_db_name)
     sql = '''
 insert into %s (date, message)
@@ -79,7 +111,11 @@ values(
     conn.execute(sql, (message,))
     conn.commit()
 
+
 def loadSettings():
+    """
+    設定を読み込む
+    """
     res = getGeneralConfigs()
     ng_users = getNGUsers()
     ng_words = getNGWords()
