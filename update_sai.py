@@ -58,9 +58,9 @@ def worker(updater, last_tweet=None):
     except Exception as e:
         err = traceback.format_exc()
         print(err)
-        # updater.send_DM_to_self(
-        #     updater.create_error_message(None, err))
-        # db_service.insertErrorLog(err)
+        updater.send_DM_to_self(
+            updater.create_error_message(None, err))
+        db_service.insertErrorLog(err)
     next_last_tweet = tweet_data[0] if len(tweet_data) > 0 else None
     create_timer(60, updater, next_last_tweet).start()
 
