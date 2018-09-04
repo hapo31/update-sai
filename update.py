@@ -53,12 +53,17 @@ class UpdateName():
         newname = self.extract_new_name(status)
         # ツイートしたユーザーのScreenName
         tweetuser_screenname = status.author.screen_name
-        len(status.entities["hashtags"])
+        # 名前がマッチしない
+        if not self._repatter.match(newname):
+            return False, None
         # 長すぎ
-        if len(newname) > 20:
+        elif len(newname) > 20:
             return False, None
         # ハッシュタグがある場合は反応しない
         elif len(status.entities["hashtags"]) > 0:
+            return False, None
+        # 前回反応済み
+        elif status.id == db_service.getLastUpdateTweetId():
             return False, None
         # NGワードチェック
         for v in self._config["ng_words"]:
@@ -108,7 +113,10 @@ class UpdateName():
                 return status
 
         #　その人と相互フォローであれば投稿する
-        if self.check_friendship(status.author.screen_name) and (tweetstr or fail_tweet):
+        if self.check_friendship(status.author.screen_name) and (newname or fail_tweet):
+            # 成功時のツイート本文
+            tweetstr = "@%s %s" % (
+                tweetuser_screenname, self._config["success_tweet"] % newname)
             if fail_tweet:
                 tweetstr = fail_tweet
             self._rec_tweet = self.api.update_status(
@@ -117,7 +125,6 @@ class UpdateName():
         return status
 
     def on_error(self, status):
-        # write_log("on_error:%s" % status)
         print(status)
 
     def create_error_message(self, status, stacktrace_text):

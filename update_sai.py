@@ -10,8 +10,6 @@ import tweepy
 import db_service
 import update
 
-last_tweet = None
-
 
 def init():
     import config
@@ -23,31 +21,35 @@ def init():
     return update.UpdateName(auth=auth, config=db_service.loadSettings())
 
 
-def worker(updater, count=200):
-    global last_tweet
+def worker(updater, last_tweet=None):
+    tweet_data = []
+    changed = False
+    target_status = None
     try:
-        if last_tweet is not None:
-            # 以前取得したツイートから90秒以上経っていたら消す
-            delta = datetime.now() - last_tweet.created_at
-            if delta.total_seconds() >= 90:
-                last_tweet = None
+        # if last_tweet is not None:
+        #     # 以前取得したツイートから50秒以上経っていたら処理を続行
+        #     delta = datetime.now() - last_tweet.created_at
+        #     if delta.total_seconds() >= 50:
+        #         last_tweet = None
+        #     else:
+        #         # 50秒以上経っていない場合は差の秒数分処理を先送りにする
+        #         create_timer(60 - delta.total_seconds(),
+        #                      last_tweet, updater, last_target_tweet)
 
+        # since_idを取得して前回取得したツイート以降のツイートを取得する
         since_id = last_tweet.id if last_tweet is not None else None
-        tweet_data = updater.api.home_timeline(since_id=since_id, count=count)
+        tweet_data = updater.api.home_timeline(since_id=since_id, count=200)
 
-        print(tweet_data)
-
-        status = None
         for tweet in reversed(tweet_data):
             result, _ = updater.check_update(tweet)
             if result:
-                status = tweet
+                target_status = tweet
 
-        if status:
-            updater.update(status)
+        # 前回処理したツイートがNoneか、idが異なっていれば名前をupdateする
+        if target_status:
+            updater.update(target_status)
+            changed = True
 
-        # 取得したツイートの最新のものを保存しておく
-        last_tweet = tweet_data[0]
     except KeyboardInterrupt:
         sys.exit()
     except AttributeError:
@@ -55,12 +57,16 @@ def worker(updater, count=200):
         print(err)
     except Exception as e:
         err = traceback.format_exc()
-        db_service.insertErrorLog(err)
+        print(err)
         # updater.send_DM_to_self(
         #     updater.create_error_message(None, err))
-        print(err)
+        # db_service.insertErrorLog(err)
+    next_last_tweet = tweet_data[0] if len(tweet_data) > 0 else None
+    create_timer(60, updater, next_last_tweet).start()
 
-    threading.Timer(60, worker, args=(updater))
+
+def create_timer(wait_seconds, updater, last_tweet):
+    return threading.Timer(wait_seconds, worker, args=[updater, last_tweet])
 
 
 if __name__ == "__main__":
@@ -68,6 +74,7 @@ if __name__ == "__main__":
     last_tweet = None
 
     print("Start Update_sai...")
-    while True:
-        updater = init()
-        threading.Thread(target=worker, args=(updater, 200)).start()
+
+    updater = init()
+
+    threading.Thread(target=worker, args=(updater, None)).start()
