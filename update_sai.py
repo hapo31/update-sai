@@ -55,14 +55,14 @@ def worker(updater, last_tweet=None):
     except AttributeError:
         err = traceback.format_exc()
         print(err)
-    except Exception as e:
+    except tweepy.error.TweepError as e:
         err = traceback.format_exc()
         print(err)
         updater.send_DM_to_self(
             updater.create_error_message(None, err))
         db_service.insertErrorLog(err)
     next_last_tweet = tweet_data[0] if len(tweet_data) > 0 else None
-    create_timer(60, updater, next_last_tweet).start()
+    create_timer(61, updater, next_last_tweet).start()
 
 
 def create_timer(wait_seconds, updater, last_tweet):
