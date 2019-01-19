@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 update_sai.py
+python3 ./src/update_sai.py
