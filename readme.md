@@ -21,6 +21,12 @@ $ python3 ./src/db_up.py
 $ ./build.sh
 ```
 
+## Build Docker image
+
+```
+$ ./build.sh
+```
+
 ## Run
 
 ```
